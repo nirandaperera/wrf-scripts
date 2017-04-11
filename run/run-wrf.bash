@@ -77,6 +77,8 @@ rm -f FILE:*
 rm -f PFILE:*
 rm -f met_em*
 
+ln -sf ungrib/Variable_Tables/Vtable.NAM Vtable
+
 ./link_grib.csh $gfs_home/"$rundate"
 
 start=$(date +%s)
