@@ -1,0 +1,88 @@
+#!/bin/bash
+
+lib_path="/opt/lib"
+wrf_home="/mnt/disks/wrf-mod"
+
+geog_home="$wrf_home/DATA/geog/"
+gfs_home="$wrf_home/DATA/GFS/"
+
+src_home="$wrf_home/scripts/src"
+ncl_home="$wrf_home/scripts/ncl"
+log_home="$wrf_home/logs"
+log_file="daily.data.log"
+
+wrf_output="$wrf_home/OUTPUT"
+ncl_output="$wrf_output/NCL"
+
+echo "Redirecting logs to $log_home/$log_file"
+mkdir -p $log_home
+exec > "$log_home/$log_file"
+
+
+rundate=$(date '+%Y%m%d'  --date="1 days ago")
+
+echo "Rundate: $rundate"
+
+mkdir -p $gfs_home
+
+cd $gfs_home || exit
+
+if [ -f runlock.txt ]; then
+        echo "get.bash is already running";
+        exit;
+fi
+
+datafile="${rundate}.gfs.t00z.pgrb2.0p50.f075"
+
+#echo $datafile
+if [ -f "${datafile}" ];
+        then
+        find2=$(find ./ -size 0 | grep "${rundate}")
+# echo $find2
+if [ ! -e "${find2}"  ]; then
+        echo "Data already there";
+        exit;
+else
+        echo "start downloading"
+fi
+else
+        echo "Data not downloaded. Start downloading";
+fi
+
+rm -- *
+
+touch runlock.txt
+
+DataLink="ftp://ftpprd.ncep.noaa.gov/pub/data/nccf/com/gfs/prod/gfs.${rundate}00"
+# DN=0
+
+echo "$DataLink"
+# while [ $DN -le 75 ]; do
+#         DataName="gfs.t00z.pgrb2.0p25.f0"$(printf "%02d" ${DN})
+
+#         if [ -f "${rundate}"."${DataName}" ]; then
+#                 echo "File $DataName already exists"
+#         else
+#                 echo "Downloading $DataName"
+#                 wget "${DataLink}"/"${DataName}" -O ./"${rundate}"."${DataName}"
+#         fi
+
+#         find3=$(find ./ -size 0 | grep "${rundate}")
+#         if [ ! -e "${find3}"  ]; then
+#                 DN=$(( DN+1 ))
+#         fi
+# done
+
+get_data() {
+	rundate=$(date '+%Y%m%d'  --date="1 days ago")
+	DataLink="ftp://ftpprd.ncep.noaa.gov/pub/data/nccf/com/gfs/prod/gfs.${rundate}00"
+	DataName="gfs.t00z.pgrb2.0p25.f0"$1
+   	wget "${DataLink}"/"${DataName}" -O ./"${rundate}"."${DataName}"
+ }
+
+export -f get_data
+
+seq -f "%02g" 0 80 | xargs -n 1 -P 10 -I {} bash -c 'get_data "$@"' _ {}
+
+rm runlock.txt
+
