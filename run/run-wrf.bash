@@ -8,9 +8,9 @@ wrf_home="/mnt/disks/wrf-mod"
 geog_home="$wrf_home/DATA/geog/"
 gfs_home="$wrf_home/DATA/GFS/"
 
-src_home="$wrf_home/scripts/src"
-run_home="$wrf_home/scripts/run"
-ncl_home="$wrf_home/scripts/ncl"
+src_home="$wrf_home/wrf-scripts/src"
+run_home="$wrf_home/wrf-scripts/run"
+ncl_home="$wrf_home/wrf-scripts/ncl"
 log_home="$wrf_home/logs"
 log_file="wrf.run."$(date +"%Y-%m-%d_%H%M")".log"
 

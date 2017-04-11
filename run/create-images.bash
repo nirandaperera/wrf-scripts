@@ -6,8 +6,8 @@ wrf_home="/mnt/disks/wrf-mod"
 geog_home="$wrf_home/DATA/geog/"
 gfs_home="$wrf_home/DATA/GFS/"
 
-src_home="$wrf_home/scripts/src"
-ncl_home="$wrf_home/scripts/ncl"
+src_home="$wrf_home/wrf-scripts/src"
+ncl_home="$wrf_home/wrf-scripts/ncl"
 log_home="$wrf_home/logs"
 log_file="create.images."$(date +"%Y-%m-%d_%H%M")".log"
 
