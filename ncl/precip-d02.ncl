@@ -18,7 +18,7 @@ begin
    type = "pdf"
 ;  type = "ps"
 ;  type = "ncgm"
-   wks = gsn_open_wks(type,"plt_Precip3")
+   wks = gsn_open_wks(type,"plt_Precip2")
 
 
 ; Set some basic resources
