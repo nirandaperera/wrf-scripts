@@ -27,12 +27,12 @@ export PATH=$PATH:"$lib_path"/mpich/bin/
 
 echo "WRF run start"
 
-rundate=$(date '+%Y%m%d' --date="1 days ago")
+rundate=$(date '+%Y%m%d' --date="0 days ago")
 year1=${rundate:0:4}
 month1=${rundate:4:2}
 date1=${rundate:6:2}
 
-rundate2=$(date '+%Y%m%d' --date " 2 days")
+rundate2=$(date '+%Y%m%d' --date "3 days")
 year2=${rundate2:0:4}
 month2=${rundate2:4:2}
 date2=${rundate2:6:2}
@@ -41,17 +41,17 @@ cd $gfs_home || exit
 
 find1="${rundate}.gfs.t00z.pgrb2.0p50.f075"
 if [ -f "${find1}" ]; then
-	find2=$(find ./ -size 0 | grep "${rundate}")
-	if [ ! -e "${find2}" ];
-		then
-		echo "${rundate} Data available";
-	else
-		echo "Data not yet available";
-		exit;
-	fi
+        find2=$(find ./ -size 0 | grep "${rundate}")
+        if [ ! -e "${find2}" ];
+                then
+                echo "${rundate} Data available";
+        else
+                echo "Data not yet available";
+                exit;
+        fi
 else
-	echo "Data not yet available";
-	exit; 
+        echo "Data not yet available";
+        exit; 
 fi
 
 
@@ -59,12 +59,12 @@ cd $wrf_home || exit
 
 lockfile="wrflock.txt"
 if [ -f ${lockfile} ] 
-	then
-	echo "Simulation has already started";
-	exit;
+        then
+        echo "Simulation has already started";
+        exit;
 else
-	echo "start simulation ${rundate}";
-	touch wrflock.txt
+        echo "start simulation ${rundate}";
+        touch wrflock.txt
 fi
 
 ulimit -s unlimited

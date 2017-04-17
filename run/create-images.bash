@@ -24,7 +24,7 @@ export NCARG_ROOT=/usr/share/ncarg
 rm -f *.pdf
 rm -f *.gif
 
-rundate=$(date '+%Y-%m-%d' --date="1 days ago")
+rundate=$(date '+%Y-%m-%d' --date="0 days ago")
 
 cd $wrf_home || exit
 
@@ -64,4 +64,3 @@ rm -f *.pdf
 rm -f *.gif
 
 exit
-
