@@ -15,7 +15,7 @@ gfs_home="$wrf_home/DATA/GFS/"
 src_home="$wrf_home/wrf-scripts/src"
 ncl_home="$wrf_home/wrf-scripts/ncl"
 log_home="$wrf_home/logs"
-log_file="daily.data.log"
+log_file="daily.data."$(date +"%Y-%m-%d_%H%M")".log"
 
 wrf_output="$wrf_home/OUTPUT"
 ncl_output="$wrf_output/NCL"
