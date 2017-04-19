@@ -29,6 +29,24 @@ t="_00:00:00"
 file1=$wrf_output/$h$rundate1$t
 echo "$file1"
 
+if [ -s "$file1" ]
+	then
+	echo " $file1 exists and is not empty. Extracting data... "
+else
+	echo " $file1  does not exist, or is empty " 
+	exit
+fi
+
+check_output=$rf_output/Kitulgala-created-"$rundate1".txt
+if [ -s "$check_output" ]
+	then
+	echo " $check_output exists and is not empty. Data already extracted!"
+	exit
+else
+	echo " $check_output  does not exist, or is empty. Extracting data..." 
+fi
+
+
 cd $wrf_output || exit
 
 mkdir -p $rf_output
@@ -62,6 +80,7 @@ do
 	sed "/netcdf "$stn_name" {/,/ PRCP =/d" "$stn_name".txt > "$stn_name"2.txt
 	sed "/netcdf "$stn_name" {/,/ Times =/d" timedata.txt > timedata2.txt
 	paste timedata2.txt "$stn_name"2.txt > "$stn_name""$rundate1".txt
+	sed -n 1,72p "$stn_name""$rundate1".txt > $rf_output/"$stn_name"-3days-created-"$rundate2".txt
 	sed -n 20,43p "$stn_name""$rundate1".txt > $rf_output/"$stn_name""$rundate2"-created-"$rundate2".txt
 	sed -n 44,67p "$stn_name""$rundate1".txt > $rf_output/"$stn_name""$rundate3"-created-"$rundate2".txt
 
