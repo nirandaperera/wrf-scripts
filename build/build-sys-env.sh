@@ -1,4 +1,4 @@
-# !/bin/bash 
+#!/bin/bash
 
 echo "installing prerequisite software"
 apt-get update
@@ -16,3 +16,7 @@ apt-get install -y ncl-ncarg
 apt-get install -y imagemagick
 apt-get install -y poppler-utils
 apt-get install -y nco
+
+apt-get install -y python-pip
+export LC_ALL=C
+pip install netcdf4

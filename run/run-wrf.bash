@@ -54,6 +54,9 @@ else
         exit; 
 fi
 
+function print_elapsed_time {
+	printf '%s - Time elapsed %dh:%dm:%ds\n' $1 $(($2/3600)) $(($2%3600/60)) $(($2%60))
+}
 
 cd $wrf_home || exit
 
@@ -85,19 +88,19 @@ start=$(date +%s)
 ./ungrib.exe 
 end=$(date +%s)
 secs=$((end-start))
-printf 'Ungrib Time elapsed %dh:%dm:%ds\n' $(($secs/3600)) $(($secs%3600/60)) $(($secs%60))
+print_elapsed_time "Ungrib" $secs
 
 start=$(date +%s)
 ./geogrid.exe
 end=$(date +%s)
 secs=$((end-start))
-printf 'Geogrid Time elapsed %dh:%dm:%ds\n' $(($secs/3600)) $(($secs%3600/60)) $(($secs%60))
+print_elapsed_time "Geogrid" $secs
 
 start=$(date +%s)
 ./metgrid.exe
 end=$(date +%s)
 secs=$((end-start))
-printf 'Metgrid Time elapsed %dh:%dm:%ds\n' $(($secs/3600)) $(($secs%3600/60)) $(($secs%60))
+print_elapsed_time "Metgrid" $secs
 
 cd $wrf_home/WRFV3/test/em_real/ || exit
 
@@ -111,14 +114,14 @@ start=$(date +%s)
 mpirun -np 4 ./real.exe
 end=$(date +%s)
 secs=$((end-start))
-printf 'Real.exe Time elapsed %dh:%dm:%ds\n' $(($secs/3600)) $(($secs%3600/60)) $(($secs%60))
+print_elapsed_time "Real.exe" $secs
 
 
 start=$(date +%s)
 mpirun -np 4 ./wrf.exe
 end=$(date +%s)
 secs=$((end-start))
-printf 'wrf.exe Time elapsed %dh:%dm:%ds\n' $(($secs/3600)) $(($secs%3600/60)) $(($secs%60))
+print_elapsed_time "wrf.exe" $secs
 
 echo "WRF run completed"
 
@@ -135,7 +138,8 @@ cd $run_home || exit
 
 echo "Extracting data"
 cd $run_home || exit
-./extract-data.bash
+#./extract-data.bash
+python read_wrf_output.py
 
 # /opt/Python/anaconda3/bin/python3.5 Plot_Rainfall_predicted_observed_dailyinputs.py
 # /opt/Python/anaconda3/bin/python3.5 Plot_Rainfall_Daraniyagala.py 
@@ -151,6 +155,6 @@ rm -f $wrf_home/wrflock.txt
 
 end=$(date +%s)
 secs=$((end-tot_start))
-printf 'completed! Time elapsed %dh:%dm:%ds\n' $(($secs/3600)) $(($secs%3600/60)) $(($secs%60))
+print_elapsed_time "completed!" $secs
 
 exit;
