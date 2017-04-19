@@ -65,7 +65,7 @@ def extract_metro_colombo(_nc_fid, _date, _times):
     lat_max = 47
     lon_min = 11
     lon_max = 17
-    cell_size = 3000
+    cell_size = 0.02723
     no_data_val = -99
 
     lats = _nc_fid.variables['XLAT'][0, lat_min:lat_max + 1, 0]  # extract/copy the data
@@ -94,7 +94,7 @@ def extract_metro_colombo(_nc_fid, _date, _times):
         output_file.write('NROWS %d\n' % height)
         output_file.write('XLLCORNER %f\n' % lons[0])
         output_file.write('YLLCORNER %f\n' % lats[0])
-        output_file.write('CELLSIZE %d\n' % cell_size)
+        output_file.write('CELLSIZE %f\n' % cell_size)
         output_file.write('NODATA_VALUE %d\n' % no_data_val)
 
         for y in range(0, height):
