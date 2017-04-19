@@ -1,5 +1,11 @@
 #!/bin/bash
 
+function print_elapsed_time {
+	printf '%s - Time elapsed %dh:%dm:%ds\n' $1 $(($2/3600)) $(($2%3600/60)) $(($2%60))
+}
+
+tot_start=$(date +%s)
+
 lib_path="/opt/lib"
 wrf_home="/mnt/disks/wrf-mod"
 
@@ -86,3 +92,8 @@ seq -f "%02g" 0 3 75 | xargs -n 1 -P 10 -I {} bash -c 'get_data "$@"' _ {}
 
 rm runlock.txt
 
+end=$(date +%s)
+secs=$((end-tot_start))
+print_elapsed_time "Data download completed!" $secs
+
+exit
