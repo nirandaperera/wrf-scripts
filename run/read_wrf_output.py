@@ -132,6 +132,12 @@ def extract_weather_stations(_nc_fid, _date, _times, _weather_stations):
 
 
 def main():
+    global wrf_home
+    global wrf_output
+    global weather_stations
+    global start_date
+    global end_date
+
     wrf_home = '/mnt/disks/wrf-mod'
     wrf_output = wrf_home + '/OUTPUT'
     weather_stations = wrf_home + '/wrf-scripts/src/stations.txt'
