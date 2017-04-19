@@ -85,7 +85,7 @@ def extract_metro_colombo(_nc_fid, _date, _times):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    for tm in range(0, 10): # len(_times) - 1):
+    for tm in range(0, len(_times) - 1):
         output_file_path = output_dir + '/rain-' + ''.join(_times[tm, :]) + '.txt'
 
         output_file = open(output_file_path, 'w')
