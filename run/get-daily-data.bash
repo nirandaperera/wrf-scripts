@@ -94,6 +94,6 @@ rm runlock.txt
 
 end=$(date +%s)
 secs=$((end-tot_start))
-print_elapsed_time "Data download completed!" $secs
+print_elapsed_time "Data-download" $secs
 
 exit
