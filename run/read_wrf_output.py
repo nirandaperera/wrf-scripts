@@ -142,8 +142,9 @@ def main():
     wrf_output = wrf_home + '/OUTPUT'
     weather_stations = wrf_home + '/wrf-scripts/src/stations.txt'
     start_date = (dt.datetime.strptime(sys.argv[1], '%Y-%m-%d') if (len(sys.argv) > 1) else dt.datetime.today())
+    start_date = start_date - dt.timedelta(days=1)
     end_date = (
-        dt.datetime.strptime(sys.argv[2], '%Y-%m-%d') if (len(sys.argv) > 2) else dt.datetime.today() + dt.timedelta(
+        dt.datetime.strptime(sys.argv[2], '%Y-%m-%d') if (len(sys.argv) > 2) else start_date + dt.timedelta(
             days=1))
 
     print "##########################"
