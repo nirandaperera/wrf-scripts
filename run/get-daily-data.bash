@@ -60,7 +60,7 @@ else
         echo "Data not downloaded. Start downloading";
 fi
 
-rm -- *
+rm -rf ./*
 
 touch runlock.txt
 
@@ -93,7 +93,7 @@ get_data() {
 
 export -f get_data
 
-seq -f "%02g" 0 3 75 | xargs -n 1 -P 10 -I {} bash -c 'get_data "$@" "$rundate' _ {}
+seq -f "%02g $rundate" 0 3 75 | xargs -n 1 -P 10 -I {} bash -c 'get_data "$@"' _ {}
 
 
 rm runlock.txt
