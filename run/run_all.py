@@ -20,7 +20,14 @@ def main():
 
     get_data_cmd = run_home + '/get-hist-data.bash'
     print 'Running bash file %s' % get_data_cmd
-    Process = subprocess.call('%s %s' % (get_data_cmd, start_date), shell=True)
+    Process1 = subprocess.call('%s %s' % (get_data_cmd, start_date), shell=True)
+    print 'Data download completed %s' % get_data_cmd
+
+    run_wrf_cmd = run_home + '/only-wrf.bash'
+    print 'Running wrf from %s to %s' % (start_date, end_date)
+    Process2 = subprocess.call(
+        '%s %s %s' % (run_wrf_cmd, start_date.strftime('%Y-%m-%d'), end_date.strftime('%Y-%m-%d')), shell=True)
+    print 'Data download completed %s' % get_data_cmd
 
 
 if __name__ == "__main__":
