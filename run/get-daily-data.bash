@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function print_elapsed_time {
-	printf '%s - Time elapsed %dh:%dm:%ds\n' $1 $(($2/3600)) $(($2%3600/60)) $(($2%60))
+	printf '%s - Time elapsed %dh:%dm:%ds\n' "$1" $(($2/3600)) $(($2%3600/60)) $(($2%60))
 }
 
 tot_start=$(date +%s)
@@ -15,7 +15,14 @@ gfs_home="$wrf_home/DATA/GFS/"
 src_home="$wrf_home/wrf-scripts/src"
 ncl_home="$wrf_home/wrf-scripts/ncl"
 log_home="$wrf_home/logs"
-log_file="daily.data."$(date +"%Y-%m-%d_%H%M")".log"
+
+if [ -z "$1" ]; then
+    rundate=$(date '+%Y%m%d'  --date="0 days ago")
+    else
+    rundate=$1
+fi
+
+log_file="daily.data.$rundate-$(date +"%Y-%m-%d_%H%M").log"
 
 wrf_output="$wrf_home/OUTPUT"
 ncl_output="$wrf_output/NCL"
@@ -24,8 +31,6 @@ echo "Redirecting logs to $log_home/$log_file"
 mkdir -p $log_home
 exec > "$log_home/$log_file"
 
-
-rundate=$(date '+%Y%m%d'  --date="0 days ago")
 
 echo "Rundate: $rundate"
 
