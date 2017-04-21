@@ -85,7 +85,7 @@ echo "$DataLink"
 
 get_data() {
         rundate=$2
-        ech0 "Downloading data for $rundate"
+        echo "Downloading data for $rundate"
         DataLink="ftp://ftpprd.ncep.noaa.gov/pub/data/nccf/com/gfs/prod/gfs.${rundate}00"
         DataName="gfs.t00z.pgrb2.0p50.f0"$1
         wget "${DataLink}"/"${DataName}" -O ./"${rundate}"."${DataName}"
@@ -93,7 +93,7 @@ get_data() {
 
 export -f get_data
 
-seq -f "%02g $rundate" 0 3 75 | xargs -n 1 -P 10 -I {} bash -c 'get_data "$@"' _ {}
+seq -f "%02g $(echo "${rundate//-}")" 0 3 75 | xargs -n 1 -P 10 -I {} bash -c 'get_data "$@"' _ {}
 
 
 rm runlock.txt
