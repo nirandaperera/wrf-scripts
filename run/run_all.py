@@ -18,7 +18,7 @@ def main():
                 dt.datetime.today() + dt.timedelta(days=1))
     print 'Downloading data for %s' % start_date
 
-    get_data_cmd = '.' + run_home + '/get-hist-data.bash'
+    get_data_cmd = run_home + '/get-hist-data.bash'
     print 'Running bash file %s' % get_data_cmd
     Process = subprocess.call('%s %s' % (get_data_cmd, start_date), shell=True)
 

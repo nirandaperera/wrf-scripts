@@ -65,8 +65,8 @@ rm -rf ./*
 touch runlock.txt
 
 year1=${rundate:0:4}
-month1=${rundate:4:2}
-date1=${rundate:6:2}
+month1=${rundate:5:2}
+date1=${rundate:8:2}
 DataLink="ftp://nomads.ncdc.noaa.gov/GFS/Grid4/$year1$month1/$year1$month1$date1/"
 echo "$DataLink"
 
