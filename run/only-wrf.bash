@@ -32,7 +32,6 @@ export LD_LIBRARY_PATH="$lib_path"/mpich/lib:"$lib_path"/grib2/lib:$LD_LIBRARY_P
 export LD_INCLUDE_PATH="$lib_path"/mpich/include:/usr/include:"$lib_path"/grib2/include:$LD_INCLUDE_PATH
 export PATH=$PATH:"$lib_path"/mpich/bin/
 
-echo "WRF run start"
 
 year1=${start_date:0:4}
 month1=${start_date:4:2}
@@ -46,6 +45,8 @@ fi
 year2=${end_date:0:4}
 month2=${end_date:4:2}
 date2=${end_date:6:2}
+
+echo "WRF run start $start_date to $end_date"
 
 cd $gfs_home || exit
 

@@ -26,7 +26,7 @@ def main():
     run_wrf_cmd = run_home + '/only-wrf.bash'
     print 'Running wrf from %s to %s' % (start_date, end_date)
     Process2 = subprocess.call(
-        '%s %s %s' % (run_wrf_cmd, start_date.strftime('%Y-%m-%d'), end_date.strftime('%Y-%m-%d')), shell=True)
+        '%s %s %s' % (run_wrf_cmd, start_date.strftime('%Y%m%d'), end_date.strftime('%Y%m%d')), shell=True)
     print 'Data download completed %s' % get_data_cmd
 
 
