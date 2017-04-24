@@ -52,7 +52,7 @@ def main():
         print 'Data download completed for %s. Elapsed time %f' % (date.strftime('%Y%m%d'), elapsed_time)
 
         print 'Running wrf from %s to %s' % (date.strftime('%Y%m%d'), date1.strftime('%Y%m%d'))
-        process2, elapsed_time = run_wrf_cmd(run_wrf_cmd, da)
+        process2, elapsed_time = run_wrf(run_wrf_cmd, date, date1)
         print 'WRF run completed from %s to %s. Elapsed time %f' % (
             date.strftime('%Y%m%d'), date1.strftime('%Y%m%d'), elapsed_time)
 
