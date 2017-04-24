@@ -23,9 +23,9 @@ log_file="wrf.run.$start_date-$(date +"%Y-%m-%d_%H%M").log"
 
 wrf_output="$wrf_home/OUTPUT"
 
-echo "Redirecting logs to $log_home/$log_file"
-mkdir -p $log_home
-exec > "$log_home/$log_file"
+#echo "Redirecting logs to $log_home/$log_file"
+#mkdir -p $log_home
+#exec > "$log_home/$log_file"
 
 export NETCDF="$lib_path"/netcdf
 export LD_LIBRARY_PATH="$lib_path"/mpich/lib:"$lib_path"/grib2/lib:$LD_LIBRARY_PATH

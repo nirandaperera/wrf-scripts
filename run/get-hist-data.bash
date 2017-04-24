@@ -27,9 +27,9 @@ log_file="daily.data.$rundate-$(date +"%Y-%m-%d_%H%M").log"
 wrf_output="$wrf_home/OUTPUT"
 ncl_output="$wrf_output/NCL"
 
-echo "Redirecting logs to $log_home/$log_file"
-mkdir -p $log_home
-exec > "$log_home/$log_file"
+#echo "Redirecting logs to $log_home/$log_file"
+#mkdir -p $log_home
+#exec > "$log_home/$log_file"
 
 
 echo "Rundate: $rundate"
@@ -65,8 +65,8 @@ rm -rf ./*
 touch runlock.txt
 
 year1=${rundate:0:4}
-month1=${rundate:5:2}
-date1=${rundate:8:2}
+month1=${rundate:4:2}
+date1=${rundate:6:2}
 DataLink="ftp://nomads.ncdc.noaa.gov/GFS/Grid4/$year1$month1/$year1$month1$date1/"
 echo "$DataLink"
 
