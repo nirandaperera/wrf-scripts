@@ -34,7 +34,7 @@ def main():
     start_date = (dt.datetime.strptime(sys.argv[1], '%Y-%m-%d') if (len(sys.argv) > 1) else dt.datetime.today())
     end_date = (dt.datetime.strptime(sys.argv[2], '%Y-%m-%d') if (len(sys.argv) > 2) else
                 dt.datetime.today() + dt.timedelta(days=1))
-    period = sys.argv[3] if (len(sys.argv) > 3) else 3
+    period = int(sys.argv[3]) if (len(sys.argv) > 3) else 3
 
     print 'WRF will be run from %s to %s for a period of %d days each day' % (
         start_date.strftime('%Y-%m-%d'), end_date.strftime('%Y-%m-%d'), period)
