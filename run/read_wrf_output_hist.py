@@ -239,6 +239,153 @@ def extract_kelani_upper_basin_mean_rainfall(nc_fid, date, times, kelani_basin_s
     output_file.close()
 
 
+def extract_kelani_upper_basin_mean_rainfall_sat(nc_fid, date, times, kelani_basin_shp_file, wrf_output):
+    def find_polygon(polygons, lat, lon):
+        point = Point(lon, lat)
+        for i, poly in enumerate(polygons.shapeRecords()):
+            polygon = shape(poly.shape.__geo_interface__)
+            if point.within(polygon):
+                # print lat, lon, i
+                return 1
+        # print lat, lon, -1
+        return 0
+
+    kel_lon_min = 79.994117
+    kel_lat_min = 6.754167
+    kel_lon_max = 80.773182
+    kel_lat_max = 7.229167
+
+    lats = nc_fid.variables['XLAT'][0, :, 0]
+    lons = nc_fid.variables['XLONG'][0, 0, :]
+
+    lon_min = np.argmax(lons >= kel_lon_min) - 1
+    lat_min = np.argmax(lats >= kel_lat_min) - 1
+    lon_max = np.argmax(lons >= kel_lon_max)
+    lat_max = np.argmax(lats >= kel_lat_max)
+
+    polys = shapefile.Reader(kelani_basin_shp_file)
+
+    kel_lats = nc_fid.variables['XLAT'][0, lat_min:lat_max + 1, lon_min:lon_max + 1]
+    kel_lons = nc_fid.variables['XLONG'][0, lat_min:lat_max + 1, lon_min:lon_max + 1]
+
+    prcp = nc_fid.variables['RAINC'][:, lat_min:lat_max + 1, lon_min:lon_max + 1] + \
+           nc_fid.variables['RAINNC'][:, lat_min:lat_max + 1, lon_min:lon_max + 1] + \
+           nc_fid.variables['SNOWNC'][:, lat_min:lat_max + 1, lon_min:lon_max + 1] + \
+           nc_fid.variables['GRAUPELNC'][:, lat_min:lat_max + 1, lon_min:lon_max + 1]
+
+    diff = prcp[1:len(times), :, :] - prcp[0: len(times) - 1, :, :]
+
+    output_dir = wrf_output + '/kelani-upper-basin/'
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    output_file_path = output_dir + '/mean-rf-' + date.strftime('%Y-%m-%d') + '.txt'
+    output_file = open(output_file_path, 'w')
+
+    for t in range(0, len(times) - 1):
+        cnt = 0
+        sum = 0.0
+        for y in range(0, len(kel_lats[:, 0])):
+            for x in range(0, len(kel_lons[0, :])):
+                if find_polygon(polys, kel_lats[y, x], kel_lons[y, x]):
+                    cnt = cnt + 1
+                    sum = sum + diff[t, y, x]
+        output_file.write('%s %f\n' % (''.join(times[t, :]), sum / cnt))
+
+    output_file.close()
+
+
+def add_buffer_to_kelani_upper_basin_mean_rainfall(date, wrf_output):
+    cells = 9433
+
+    content = []
+    first_line = ''
+    for i in range(3, -1, -1):
+        file_name = wrf_output + '/kelani-basin/created-' + (date - dt.timedelta(days=i)).strftime(
+            '%Y-%m-%d') + '/RAINCELL.DAT'
+
+        if os.path.exists(file_name):
+            with open(file_name) as myfile:
+                first_line = next(myfile)
+                if i != 0:
+                    head = [next(myfile) for x in xrange(cells * 24)]
+                else:
+                    head = [line for line in myfile]
+            content.extend(head)
+        else:
+            head = ['%d 0.0\n' % (x % cells + 1) for x in xrange(cells * 24 + 1)]
+            content.extend(head)
+
+    out_dir = wrf_output + '/kelani-basin/new-created-' + date.strftime('%Y-%m-%d')
+    out_name = out_dir + '/RAINCELL.DAT'
+
+    first_line = first_line.split()
+    first_line[1] = str(int(first_line[1]) + 24 * 3)
+    first_line[2] = (date - dt.timedelta(days=3)).strftime('%Y-%m-%d')
+
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
+    out_file = open(out_name, 'w')
+    out_file.write(' '.join(first_line) + '\n')
+    for line in content:
+        out_file.write(line)
+    out_file.close()
+
+
+def concat_rainfall_files(date, wrf_output, weather_stations):
+    with open(weather_stations, 'rb') as stations_file:
+        rf_dir = wrf_output + '/RF'
+        for station_name in stations_file:
+            station_name = station_name.split()[0]
+            if not os.path.exists(rf_dir):
+                os.makedirs(rf_dir)
+
+            out_file_path = rf_dir + '/' + station_name + '.csv'
+            if not os.path.exists(out_file_path):
+                with open(out_file_path, 'w') as out_file:
+                    out_file.write("Timestamp, Value, Time, ValID\n")
+
+            with open(out_file_path, 'a') as out_file:
+                rf_file = rf_dir + '/' + station_name + '-' + date.strftime('%Y-%m-%d') + '.txt'
+                with open(rf_file) as rf_file:
+                    # next(rf_file)
+                    i = 0
+                    for line in rf_file:
+                        ts = line.split()[0]
+                        val = line.split()[1]
+                        ref = int(dt.datetime.strptime('2017-04-01', '%Y-%m-%d').strftime('%s')) / 3600
+                        epoch = int(dt.datetime.strptime(ts, '%Y-%m-%d_%H:%M:%S').strftime('%s')) / 3600 - ref
+                        # epoch = dt.datetime.strptime(ts, '%Y-%m-%d_%H:%M:%S').strftime('%s')
+                        val_id = station_name[0:5] + date.strftime('%y%m%d-') + str(i / 24)
+                        out_file.write('%s, %s, %s, %s\n' % (ts, val, epoch, val_id))
+                        i += 1
+
+
+def concat_rainfall_files_1(date, wrf_output, weather_stations):
+    with open(weather_stations, 'rb') as stations_file:
+        rf_dir = wrf_output + '/RF'
+        for station_name in stations_file:
+            station_name = station_name.split()[0]
+            if not os.path.exists(rf_dir):
+                os.makedirs(rf_dir)
+
+            df = None
+            out_file_path = rf_dir + '/' + station_name + '-merged.csv'
+            if os.path.exists(out_file_path):
+                df = pd.read_csv(out_file_path)
+
+            rf_file = rf_dir + '/' + station_name + '-' + date.strftime('%Y-%m-%d') + '.txt'
+            rf_df = pd.read_csv(rf_file, header=None, delim_whitespace=True)
+            rf_df.columns = ['time', 'f' + date.strftime('%y%m%d')]
+            rf_df['time'] = rf_df['time'].apply(lambda x: int(dt.datetime.strptime(x, '%Y-%m-%d_%H:%M:%S').strftime('%s')))
+
+            if df is not None:
+                df_out = pd.merge(df, rf_df, on='time', how='outer')
+                df_out.to_csv(out_file_path, index=False)
+            else:
+                rf_df.to_csv(out_file_path, index=False)
+
+
 def main():
     start_date = (dt.datetime.strptime(sys.argv[1], '%Y-%m-%d') if (len(sys.argv) > 1)
                   else dt.datetime.today())
@@ -276,23 +423,35 @@ def main():
         print "Extract time data"
         times_len, times = extract_time_data(nc_fid)
 
-        # print "##########################"
-        # print "Extract rainfall data for the metro colombo area"
-        # extract_metro_colombo(nc_fid, date, times, wrf_output)
-        #
-        # print "##########################"
-        # print "Extract weather station rainfall"
-        # extract_weather_stations(nc_fid, date, times, weather_stations, wrf_output)
+        print "##########################"
+        print "Extract rainfall data for the metro colombo area"
+        extract_metro_colombo(nc_fid, date, times, wrf_output)
 
-        # print "##########################"
-        # print "Extract Kelani Basin point rainfall"
-        # kelani_basin_file = wrf_home + '/wrf-scripts/src/kelani-basin-points.txt'
-        # extract_kelani_lower_basin_rainfall(nc_fid, date, times, kelani_basin_file, wrf_output)
+        print "##########################"
+        print "Extract weather station rainfall"
+        extract_weather_stations(nc_fid, date, times, weather_stations, wrf_output)
+
+        print "##########################"
+        print "Extract Kelani Basin point rainfall"
+        kelani_basin_file = wrf_home + '/wrf-scripts/src/kelani-basin-points.txt'
+        extract_kelani_lower_basin_rainfall(nc_fid, date, times, kelani_basin_file, wrf_output)
 
         print "##########################"
         print "Extract Kelani upper Basin mean rainfall"
         kelani_basin_shp_file = wrf_home + '/wrf-scripts/src/kelani-upper-basin.shp'
         extract_kelani_upper_basin_mean_rainfall(nc_fid, date, times, kelani_basin_shp_file, wrf_output)
+
+        print "##########################"
+        print "adding buffer to the RAINCELL.DAT file"
+        add_buffer_to_kelani_upper_basin_mean_rainfall(date, wrf_output)
+
+        print "##########################"
+        print "Concat the RF of the weather stations 1"
+        concat_rainfall_files(date, wrf_output, weather_stations)
+
+        print "##########################"
+        print "Concat the RF of the weather stations 2"
+        concat_rainfall_files(date, wrf_output, weather_stations)
 
         nc_fid.close()
 
