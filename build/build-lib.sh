@@ -1,4 +1,5 @@
-# !/bin/bash  
+#!/bin/bash
+
 mount_dir="wrf-mod"
 wrf_home="/mnt/disks/$mount_dir"
 lib_home="/opt/lib"

@@ -377,7 +377,8 @@ def concat_rainfall_files_1(date, wrf_output, weather_stations):
             rf_file = rf_dir + '/' + station_name + '-' + date.strftime('%Y-%m-%d') + '.txt'
             rf_df = pd.read_csv(rf_file, header=None, delim_whitespace=True)
             rf_df.columns = ['time', 'f' + date.strftime('%y%m%d')]
-            rf_df['time'] = rf_df['time'].apply(lambda x: int(dt.datetime.strptime(x, '%Y-%m-%d_%H:%M:%S').strftime('%s')))
+            rf_df['time'] = rf_df['time'].apply(
+                lambda x: int(dt.datetime.strptime(x, '%Y-%m-%d_%H:%M:%S').strftime('%s')))
 
             if df is not None:
                 df_out = pd.merge(df, rf_df, on='time', how='outer')
@@ -441,6 +442,8 @@ def main():
         kelani_basin_shp_file = wrf_home + '/wrf-scripts/src/kelani-upper-basin.shp'
         extract_kelani_upper_basin_mean_rainfall(nc_fid, date, times, kelani_basin_shp_file, wrf_output)
 
+        nc_fid.close()
+
         print "##########################"
         print "adding buffer to the RAINCELL.DAT file"
         add_buffer_to_kelani_upper_basin_mean_rainfall(date, wrf_output)
@@ -451,9 +454,7 @@ def main():
 
         print "##########################"
         print "Concat the RF of the weather stations 2"
-        concat_rainfall_files(date, wrf_output, weather_stations)
-
-        nc_fid.close()
+        concat_rainfall_files_1(date, wrf_output, weather_stations)
 
 
 if __name__ == "__main__":
