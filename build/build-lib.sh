@@ -1,4 +1,4 @@
-# !/bin/bash  
+#!/bin/bash
 mount_dir="wrf-mod"
 wrf_home="/mnt/disks/$mount_dir"
 lib_home="/opt/lib"
@@ -73,6 +73,8 @@ if [ ! -d mpich-3.0.4 ]; then
 	make
 	make install
 	echo "export PATH=$DIR/mpich/bin:\$PATH"  >> /etc/profile
+    echo "export LD_LIBRARY_PATH=$DIR/mpich/lib:$DIR/grib2/lib:$LD_LIBRARY_PATH" >> /etc/profile
+    echo "export LD_INCLUDE_PATH=$DIR/mpich/include:/usr/include:$DIR/grib2/include:$LD_INCLUDE_PATH" >> /etc/profile
 	cd ..
 fi
 
