@@ -7,7 +7,9 @@ import numpy as np
 import sys
 import csv
 
+import shapefile
 from netCDF4 import Dataset  # http://code.google.com/p/netcdf4-python/
+from shapely.geometry import Point, shape
 
 
 def extract_time_data(_nc_fid):
@@ -179,6 +181,62 @@ def extract_kelani_basin_rainfall(_nc_fid, _date, _times, _kelani_basin_file, _w
     output_file.close()
 
 
+def extract_kelani_upper_basin_mean_rainfall(nc_fid, date, times, kelani_basin_shp_file, wrf_output):
+    def is_inside_polygon(polygons, lat, lon):
+        point = Point(lon, lat)
+        for i, poly in enumerate(polygons.shapeRecords()):
+            polygon = shape(poly.shape.__geo_interface__)
+            if point.within(polygon):
+                # print lat, lon, i
+                return 1
+        # print lat, lon, -1
+        return 0
+
+    kel_lon_min = 79.994117
+    kel_lat_min = 6.754167
+    kel_lon_max = 80.773182
+    kel_lat_max = 7.229167
+
+    lats = nc_fid.variables['XLAT'][0, :, 0]
+    lons = nc_fid.variables['XLONG'][0, 0, :]
+
+    lon_min = np.argmax(lons >= kel_lon_min) - 1
+    lat_min = np.argmax(lats >= kel_lat_min) - 1
+    lon_max = np.argmax(lons >= kel_lon_max)
+    lat_max = np.argmax(lats >= kel_lat_max)
+
+    polys = shapefile.Reader(kelani_basin_shp_file)
+
+    kel_lats = nc_fid.variables['XLAT'][0, lat_min:lat_max + 1, lon_min:lon_max + 1]
+    kel_lons = nc_fid.variables['XLONG'][0, lat_min:lat_max + 1, lon_min:lon_max + 1]
+
+    prcp = nc_fid.variables['RAINC'][:, lat_min:lat_max + 1, lon_min:lon_max + 1] + \
+           nc_fid.variables['RAINNC'][:, lat_min:lat_max + 1, lon_min:lon_max + 1] + \
+           nc_fid.variables['SNOWNC'][:, lat_min:lat_max + 1, lon_min:lon_max + 1] + \
+           nc_fid.variables['GRAUPELNC'][:, lat_min:lat_max + 1, lon_min:lon_max + 1]
+
+    diff = prcp[1:len(times), :, :] - prcp[0: len(times) - 1, :, :]
+
+    output_dir = wrf_output + '/kelani-upper-basin/'
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    output_file_path = output_dir + '/mean-rf-' + date.strftime('%Y-%m-%d') + '.txt'
+    output_file = open(output_file_path, 'w')
+
+    for t in range(0, len(times) - 1):
+        cnt = 0
+        rf_sum = 0.0
+        for y in range(0, len(kel_lats[:, 0])):
+            for x in range(0, len(kel_lons[0, :])):
+                if is_inside_polygon(polys, kel_lats[y, x], kel_lons[y, x]):
+                    cnt = cnt + 1
+                    rf_sum = rf_sum + diff[t, y, x]
+        output_file.write('%s %f\n' % (''.join(times[t, :]), rf_sum / cnt))
+
+    output_file.close()
+
+
 def main():
     start_date = (dt.datetime.strptime(sys.argv[1], '%Y-%m-%d') if (len(sys.argv) > 1)
                   else dt.datetime.today())
@@ -228,6 +286,11 @@ def main():
         print "Extract Kelani Basin rainfall"
         kelani_basin_file = wrf_home + '/wrf-scripts/src/kelani-basin-points.txt'
         extract_kelani_basin_rainfall(nc_fid, date, times, kelani_basin_file, wrf_output)
+
+        print "##########################"
+        print "Extract Kelani upper Basin mean rainfall"
+        kelani_basin_shp_file = wrf_home + '/wrf-scripts/src/kelani-upper-basin.shp'
+        extract_kelani_upper_basin_mean_rainfall(nc_fid, date, times, kelani_basin_shp_file, wrf_output)
 
         nc_fid.close()
 
