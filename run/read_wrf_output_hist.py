@@ -1,15 +1,16 @@
 #!/usr/bin/python
 
+import csv
 import datetime as dt  # Python standard library datetime  module
-import os
+import sys
 
 import numpy as np
-import sys
-import csv
+import os
+import pandas as pd
 import shapefile
 from netCDF4 import Dataset  # http://code.google.com/p/netcdf4-python/
-from shapely.geometry import Polygon, Point, MultiPolygon, shape
-import pandas as pd
+from shapely.geometry import Point, shape
+import zipfile
 
 
 def extract_time_data(nc_fid):
@@ -239,8 +240,8 @@ def extract_kelani_upper_basin_mean_rainfall(nc_fid, date, times, kelani_basin_s
     output_file.close()
 
 
-def extract_kelani_upper_basin_mean_rainfall_sat(nc_fid, date, times, kelani_basin_shp_file, wrf_output):
-    def find_polygon(polygons, lat, lon):
+def extract_kelani_upper_basin_mean_rainfall_sat(sat_dir, date, kelani_basin_shp_file, wrf_output):
+    def is_inside_polygon(polygons, lat, lon):
         point = Point(lon, lat)
         for i, poly in enumerate(polygons.shapeRecords()):
             polygon = shape(poly.shape.__geo_interface__)
@@ -255,42 +256,38 @@ def extract_kelani_upper_basin_mean_rainfall_sat(nc_fid, date, times, kelani_bas
     kel_lon_max = 80.773182
     kel_lat_max = 7.229167
 
-    lats = nc_fid.variables['XLAT'][0, :, 0]
-    lons = nc_fid.variables['XLONG'][0, 0, :]
+    y = date.strftime('%Y')
+    m = date.strftime('%m')
+    d = date.strftime('%d')
 
-    lon_min = np.argmax(lons >= kel_lon_min) - 1
-    lat_min = np.argmax(lats >= kel_lat_min) - 1
-    lon_max = np.argmax(lons >= kel_lon_max)
-    lat_max = np.argmax(lats >= kel_lat_max)
-
-    polys = shapefile.Reader(kelani_basin_shp_file)
-
-    kel_lats = nc_fid.variables['XLAT'][0, lat_min:lat_max + 1, lon_min:lon_max + 1]
-    kel_lons = nc_fid.variables['XLONG'][0, lat_min:lat_max + 1, lon_min:lon_max + 1]
-
-    prcp = nc_fid.variables['RAINC'][:, lat_min:lat_max + 1, lon_min:lon_max + 1] + \
-           nc_fid.variables['RAINNC'][:, lat_min:lat_max + 1, lon_min:lon_max + 1] + \
-           nc_fid.variables['SNOWNC'][:, lat_min:lat_max + 1, lon_min:lon_max + 1] + \
-           nc_fid.variables['GRAUPELNC'][:, lat_min:lat_max + 1, lon_min:lon_max + 1]
-
-    diff = prcp[1:len(times), :, :] - prcp[0: len(times) - 1, :, :]
-
-    output_dir = wrf_output + '/kelani-upper-basin/'
+    output_dir = wrf_output + '/kelani-upper-basin/sat'
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    output_file_path = output_dir + '/mean-rf-' + date.strftime('%Y-%m-%d') + '.txt'
+    output_file_path = output_dir + '/mean-rf-sat-' + date.strftime('%Y-%m-%d') + '.csv'
     output_file = open(output_file_path, 'w')
 
-    for t in range(0, len(times) - 1):
+    polys = shapefile.Reader(kelani_basin_shp_file)
+
+    for h in range(0, 24):
         cnt = 0
-        sum = 0.0
-        for y in range(0, len(kel_lats[:, 0])):
-            for x in range(0, len(kel_lons[0, :])):
-                if find_polygon(polys, kel_lats[y, x], kel_lons[y, x]):
-                    cnt = cnt + 1
-                    sum = sum + diff[t, y, x]
-        output_file.write('%s %f\n' % (''.join(times[t, :]), sum / cnt))
+        rf_sum = 0.0
+
+        sh = str(h).zfill(2)
+        sat_zip_file = '%s/%s/%s/%s/gsmap_nrt.%s%s%s.%s00.05_AsiaSS.csv.zip' % (sat_dir, y, m, d, y, m, d, sh)
+
+        sat_zip = zipfile.ZipFile(sat_zip_file)
+        sat = np.genfromtxt(sat_zip.open('gsmap_nrt.%s%s%s.%s00.05_AsiaSS.csv' % (y, m, d, sh)), delimiter=',',
+                            names=True)
+        sat_filt = sat[(sat['Lat'] <= kel_lat_max) & (sat['Lat'] >= kel_lat_min) & (sat['Lon'] <= kel_lon_max) & (
+            sat['Lon'] >= kel_lon_min)]
+
+        for p in sat_filt:
+            if is_inside_polygon(polys, p[0], p[1]):
+                cnt = cnt + 1
+                rf_sum = rf_sum + p[2]
+
+        output_file.write('%s-%s-%s_%s:00:00 %f\n' % (y, m, d, sh, rf_sum / cnt))
 
     output_file.close()
 
@@ -396,6 +393,8 @@ def main():
     wrf_home = sys.argv[3] if (len(sys.argv) > 3) else '/mnt/disks/wrf-mod'
     wrf_output = wrf_home + '/OUTPUT'
     weather_stations = wrf_home + '/wrf-scripts/src/stations.txt'
+    kelani_basin_file = wrf_home + '/wrf-scripts/src/kelani-basin-points.txt'
+    kelani_basin_shp_file = wrf_home + '/wrf-scripts/src/kelani-upper-basin.shp'
 
     print "##########################"
     print "WRF dir = %s" % wrf_home
@@ -434,12 +433,10 @@ def main():
 
         print "##########################"
         print "Extract Kelani Basin point rainfall"
-        kelani_basin_file = wrf_home + '/wrf-scripts/src/kelani-basin-points.txt'
         extract_kelani_lower_basin_rainfall(nc_fid, date, times, kelani_basin_file, wrf_output)
 
         print "##########################"
         print "Extract Kelani upper Basin mean rainfall"
-        kelani_basin_shp_file = wrf_home + '/wrf-scripts/src/kelani-upper-basin.shp'
         extract_kelani_upper_basin_mean_rainfall(nc_fid, date, times, kelani_basin_shp_file, wrf_output)
 
         nc_fid.close()
@@ -455,6 +452,11 @@ def main():
         print "##########################"
         print "Concat the RF of the weather stations 2"
         concat_rainfall_files_1(date, wrf_output, weather_stations)
+
+        # print "##########################"
+        # print "Analyze the Sat Images"
+        # sat_data_dir = '/home/nira/Desktop/2016-event/05_AsiaSS'
+        # extract_kelani_upper_basin_mean_rainfall_sat(sat_data_dir, date, kelani_basin_shp_file, wrf_output)
 
 
 if __name__ == "__main__":
