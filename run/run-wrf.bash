@@ -124,12 +124,17 @@ end=$(date +%s)
 secs=$((end-start))
 print_elapsed_time "Real.exe" $secs
 
+mkdir -p $log_home/rsl-real-"$rundate"
+mv rsl* $log_home/rsl-real-"$rundate"/
 
 start=$(date +%s)
 mpirun -np 4 ./wrf.exe
 end=$(date +%s)
 secs=$((end-start))
 print_elapsed_time "wrf.exe" $secs
+
+mkdir -p $log_home/rsl-wrf-"$rundate"
+mv rsl* $log_home/rsl-wrf-"$rundate"/
 
 echo "WRF run completed"
 
