@@ -20,3 +20,5 @@ apt-get install -y nco
 apt-get install -y python-pip
 export LC_ALL=C
 pip install netcdf4
+pip install pyshp
+pip install shapely
