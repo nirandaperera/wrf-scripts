@@ -151,8 +151,7 @@ cd $run_home || exit
 
 echo "Extracting data"
 cd $run_home || exit
-#./extract-data.bash
-python read_wrf_output.py
+python read_wrf_output.py "$year1-$month1-$date1"
 
 # /opt/Python/anaconda3/bin/python3.5 Plot_Rainfall_predicted_observed_dailyinputs.py
 # /opt/Python/anaconda3/bin/python3.5 Plot_Rainfall_Daraniyagala.py 
