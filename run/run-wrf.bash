@@ -12,7 +12,7 @@ src_home="$wrf_home/wrf-scripts/src"
 run_home="$wrf_home/wrf-scripts/run"
 ncl_home="$wrf_home/wrf-scripts/ncl"
 log_home="$wrf_home/logs"
-log_file="wrf.run."$(date +"%Y-%m-%d_%H%M")".log"
+log_file="wrf.run.$(date +"%Y-%m-%d_%H%M").log"
 
 wrf_output="$wrf_home/OUTPUT"
 
@@ -25,17 +25,25 @@ export LD_LIBRARY_PATH="$lib_path"/mpich/lib:"$lib_path"/grib2/lib:$LD_LIBRARY_P
 export LD_INCLUDE_PATH="$lib_path"/mpich/include:/usr/include:"$lib_path"/grib2/include:$LD_INCLUDE_PATH
 export PATH=$PATH:"$lib_path"/mpich/bin/
 
-echo "WRF run start"
-
-rundate=$(date '+%Y%m%d' --date="0 days ago")
+if [ -z "$1" ]; then
+    rundate=$(date '+%Y%m%d' --date="0 days ago")
+    else
+    rundate=$1
+fi
 year1=${rundate:0:4}
 month1=${rundate:4:2}
 date1=${rundate:6:2}
 
-rundate2=$(date '+%Y%m%d' --date "3 days")
+if [ -z "$2" ]; then
+    rundate2=$(date '+%Y%m%d' --date "3 days")
+    else
+    rundate2=$2
+fi
 year2=${rundate2:0:4}
 month2=${rundate2:4:2}
 date2=${rundate2:6:2}
+
+echo "WRF run start $rundate to $rundate2"
 
 cd $gfs_home || exit
 
@@ -51,11 +59,11 @@ if [ -f "${find1}" ]; then
         fi
 else
         echo "Data not yet available";
-        exit; 
+        exit;
 fi
 
 function print_elapsed_time {
-	printf '%s - Time elapsed %dh:%dm:%ds\n' $1 $(($2/3600)) $(($2%3600/60)) $(($2%60))
+	printf '%s - Time elapsed %dh:%dm:%ds\n' "$1" $(($2/3600)) $(($2%3600/60)) $(($2%60))
 }
 
 cd $wrf_home || exit
